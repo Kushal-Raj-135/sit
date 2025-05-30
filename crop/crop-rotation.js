@@ -799,8 +799,7 @@ function formatRecommendations(data) {
 
 // Function to get recommendations from Groq AI
 async function getGroqRecommendations(cropInfo) {
-    // Use a constant API key for now - this should be replaced with your actual API key
-    const GROQ_API_KEY = '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';
+    const GROQ_API_KEY = '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';
     const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
 
     const prompt = `As an agricultural expert in India, provide a detailed 3-year crop rotation plan for the following farm, using local crop names that farmers will understand. IMPORTANT: Do NOT recommend the same crop as the current crop in the rotation plan. Each year should have a different crop to maintain soil health and prevent pest cycles.
@@ -879,23 +878,23 @@ Additional Recommendations:
             })
         });
 
-        console.log("Response status:", response.status);
-        const responseText = await response.text();
-        console.log("Raw response:", responseText);
-
         if (!response.ok) {
-            throw new Error(`Failed to get AI recommendations: ${response.status} ${responseText}`);
+            const errorText = await response.text();
+            console.error("API Error Response:", errorText);
+            throw new Error(`API request failed with status ${response.status}`);
         }
 
-        const data = JSON.parse(responseText);
-        if (!data.choices || !data.choices[0] || !data.choices[0].message) {
+        const data = await response.json();
+        
+        if (!data.choices?.[0]?.message?.content) {
+            console.error("Invalid API Response:", data);
             throw new Error('Invalid response format from Groq AI');
         }
 
         return data.choices[0].message.content;
     } catch (error) {
         console.error('Error getting AI recommendations:', error);
-        return `Unable to get AI recommendations at the moment. Please try again later.`;
+        return `Unable to get AI recommendations at the moment. Please try again later. Error: ${error.message}`;
     }
 }
 
